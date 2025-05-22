@@ -1,0 +1,30 @@
+version: '3.9'
+services:
+  mosquitto:
+    image: eclipse-mosquitto:2
+    restart: unless-stopped
+    ports:
+      - "1883:1883"
+    volumes:
+      - ./configuration/mosquitto/config/:/mosquitto/config/
+
+  # db:
+  #   image: mariadb:latest
+  #   container_name: mariadb
+  #   environment:
+  #     MYSQL_ROOT_PASSWORD: plant172839
+  #     MYSQL_USER: polipharm
+  #     MYSQL_PASSWORD: plant172839
+  #     TZ: "Asia/Bangkok" # ตั้งค่าโซนเวลาเป็น Asia/Bangkok
+  #   ports:
+  #     - 3306:3306
+  #   volumes:
+  #     - ./configuration/database:/var/lib/mysql
+
+  # backend:
+  #   build: ./backend
+  #   ports:
+  #     - "3000:3000"
+  #   depends_on:
+  #     - mosquitto
+  #     - db
