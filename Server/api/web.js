@@ -36,7 +36,6 @@ router.get('/dashboard', async (req, res) => {
           [machine_sn]
         );
 
-
         const [timestampLastRows] = await pool.execute(
           `SELECT timestamp
            FROM machine_data 
@@ -490,19 +489,15 @@ router.post('/machine/settings', async (req, res) => {
 
       // เพิ่มรายการเครื่องจักร
       if (machine_id) {
-        if (alarm_box_sn_1) {
-          await conn.execute('UPDATE machine SET alarm_box_sn_1 = NULL WHERE alarm_box_sn_1 = ?  OR alarm_box_sn_1 = ?', [
-            alarm_box_sn_1,
-            alarm_box_sn_1,
-          ]);
-        }
+        await conn.execute('UPDATE machine SET alarm_box_sn_1 = NULL WHERE alarm_box_sn_1 = ?  OR alarm_box_sn_1 = ?', [
+          alarm_box_sn_1 || "",
+          alarm_box_sn_2 || "",
+        ]);
 
-        if (alarm_box_sn_2) {
-          await conn.execute('UPDATE machine SET alarm_box_sn_2 = NULL WHERE alarm_box_sn_2 = ?  OR alarm_box_sn_2 = ?', [
-            alarm_box_sn_2,
-            alarm_box_sn_2,
-          ]);
-        }
+        await conn.execute('UPDATE machine SET alarm_box_sn_2 = NULL WHERE alarm_box_sn_2 = ?  OR alarm_box_sn_2 = ?', [
+          alarm_box_sn_1 || "",
+          alarm_box_sn_2 || "",
+        ]);
 
         const query = `
           UPDATE machine 

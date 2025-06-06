@@ -1,7 +1,7 @@
 #include "./setting.h"
 #include <Arduino.h>
 #include <ArduinoJson.h>
-#include <Preferences.h> // รวมไลบรารี
+#include <Preferences.h>
 #include <PubSubClient.h>
 #include <WiFi.h>
 
@@ -387,7 +387,6 @@ void loadConfiguration() {
     Serial.println("TIMEOUT TIMEOUT: " + String(timeout));
     Serial.println("================================");
 
-    preferences.end();
 }
 
 void command(char cmd) {

@@ -17,6 +17,8 @@ services:
       - POSTGRESQL_HOST=postgres
     ports:
       - "8080:8080"
+    networks:
+      - iot-network
 
   chirpstack-gateway-bridge:
     image: chirpstack/chirpstack-gateway-bridge:4
@@ -31,6 +33,8 @@ services:
       - INTEGRATION__MQTT__COMMAND_TOPIC_TEMPLATE=as923/gateway/{{ .GatewayID }}/command/#
     depends_on:
       - mosquitto
+    networks:
+      - iot-network
 
   chirpstack-gateway-bridge-basicstation:
     image: chirpstack/chirpstack-gateway-bridge:4
@@ -42,6 +46,8 @@ services:
       - ./configuration/chirpstack-gateway-bridge:/etc/chirpstack-gateway-bridge
     depends_on:
       - mosquitto
+    networks:
+      - iot-network
 
   chirpstack-rest-api:
     image: chirpstack/chirpstack-rest-api:4
@@ -51,6 +57,8 @@ services:
       - "8090:8090"
     depends_on:
       - chirpstack
+    networks:
+      - iot-network
 
   postgres:
     image: postgres:14-alpine
@@ -62,6 +70,8 @@ services:
       - POSTGRES_USER=chirpstack
       - POSTGRES_PASSWORD=chirpstack
       - POSTGRES_DB=chirpstack
+    networks:
+      - iot-network
 
   redis:
     image: redis:7-alpine
@@ -69,6 +79,8 @@ services:
     command: redis-server --save 300 1 --save 60 100 --appendonly no
     volumes:
       - redisdata:/data
+    networks:
+      - iot-network
 
   mosquitto:
     image: eclipse-mosquitto:2
@@ -77,6 +89,8 @@ services:
       - "1883:1883"
     volumes:
       - ./configuration/mosquitto/config/:/mosquitto/config/
+    networks:
+      - iot-network
 
   influxdb:
     image: influxdb:2
@@ -111,6 +125,8 @@ services:
     volumes:
       - "./configuration/grafana/lib:/var/lib/grafana"
       - "./configuration/grafana/etc:/etc/grafana"
+    networks:
+      - iot-network
 
 volumes:
   postgresqldata:

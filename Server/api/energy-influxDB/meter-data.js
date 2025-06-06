@@ -274,7 +274,7 @@ async function handleDailyWeekData(bucket, sensorId, today, startDate, endDate) 
 
   `;
 
-  console.log('fluxQuery', fluxQuery);
+  // console.log('fluxQuery', fluxQuery);
 
   const results = await influxApi.collectRows(fluxQuery);
   // console.log('results', results);
@@ -290,15 +290,26 @@ async function handleDailyWeekData(bucket, sensorId, today, startDate, endDate) 
           prevValue = await getPreviousPeriodData(bucket, sensorId, day.date, 'daily');
           difference = currentValue ? currentValue - prevValue : null;
         } else {
-          const prevDay = days[index - 1];
-          if (!prevDay.isFuture) {
-            const prevDayResult = results.find((r) => dayjs(r._time).isSame(prevDay.date, 'day'));
-            prevValue = prevDayResult?._value || null;
-            difference = currentValue ? currentValue - prevValue : null;
-          }
-        }
+          let prevIndex = index - 1;
+          prevValue = null;
 
-        // console.log('prevValue', index, currentValue, prevValue, difference);
+          // ย้อนกลับไปหาค่าที่ไม่ใช่ null
+          while (prevIndex >= 0 && prevValue === null) {
+            const prevDay = days[prevIndex];
+            if (!prevDay.isFuture) {
+              const prevDayResult = results.find((r) => dayjs(r._time).isSame(prevDay.date, 'day'));
+              prevValue = prevDayResult?._value || null;
+            }
+            prevIndex--;
+          }
+
+          // ถ้าย้อนกลับไปถึง days[0] แล้วยังไม่มีค่า ให้ใช้ getPreviousPeriodData
+          if (prevValue === null && index > 0) {
+            prevValue = await getPreviousPeriodData(bucket, sensorId, days[0].date, 'daily');
+          }
+
+          difference = currentValue ? currentValue - prevValue : null;
+        }
       }
 
       // console.log('results', prevValue, currentValue, difference);
@@ -356,17 +367,33 @@ async function handleDailyMonthData(bucket, sensorId, today, startDate, endDate)
       const result = results.find((r) => dayjs(r._time).isSame(day.date, 'day'));
       const currentValue = day.isFuture ? null : result?._value || null;
 
-      let prevValue,
-        difference = null;
-      if (!day.isFuture) {
+      let prevValue = null;
+      let difference = null;
+
+      if (!day.isFuture && currentValue !== null) {
         if (index === 0) {
+          // ถ้าเป็นวันแรก ให้ใช้ข้อมูลจากช่วงเวลาก่อนหน้า
           prevValue = await getPreviousPeriodData(bucket, sensorId, day.date, 'daily');
-          difference = currentValue ? currentValue - prevValue : null;
         } else {
-          const prevDayResult = results.find((r) => dayjs(r._time).isSame(days[index - 1].date, 'day'));
-          prevValue = prevDayResult?._value || null;
-          difference = currentValue ? currentValue - prevValue : null;
+          // ย้อนกลับไปหาค่าที่ไม่ใช่ null จากวันก่อนหน้า
+          let prevIndex = index - 1;
+          while (prevIndex >= 0 && prevValue === null) {
+            const prevDay = days[prevIndex];
+            if (!prevDay.isFuture) {
+              const prevDayResult = results.find((r) => dayjs(r._time).isSame(prevDay.date, 'day'));
+              prevValue = prevDayResult?._value || null;
+            }
+            prevIndex--;
+          }
+
+          // ถ้าย้อนกลับไปถึง days[0] แล้วยังไม่มีค่า
+          if (prevValue === null) {
+            prevValue = await getPreviousPeriodData(bucket, sensorId, days[0].date, 'daily');
+          }
         }
+
+        // คำนวณความแตกต่างถ้ามีค่าปัจจุบัน
+        difference = currentValue !== null && prevValue !== null ? currentValue - prevValue : null;
       }
 
       return {
@@ -422,16 +449,34 @@ async function handleDailyYearData(bucket, sensorId, today, startDate, endDate) 
       const result = results.find((r) => dayjs(r._time).isSame(day.date, 'day'));
       const currentValue = day.isFuture ? null : result?._value || null;
 
-      let prevValue,
-        difference = null;
-      if (!day.isFuture) {
-        if (index === 0) {
+      let prevValue = null;
+      let difference = null;
+
+      if (!day.isFuture && currentValue !== null) {
+        // Find previous non-null value by looking backwards
+        let prevIndex = index - 1;
+
+        while (prevIndex >= 0 && prevValue === null) {
+          const prevDay = days[prevIndex];
+          if (!prevDay.isFuture) {
+            const prevDayResult = results.find((r) => dayjs(r._time).isSame(prevDay.date, 'day'));
+            prevValue = prevDayResult?._value ?? null;
+          }
+          prevIndex--;
+        }
+
+        // If we didn't find any previous value and we're not at the first day
+        if (prevValue === null && index > 0) {
+          prevValue = await getPreviousPeriodData(bucket, sensorId, days[0].date, 'daily');
+        }
+        // If we're at the first day and need a previous value
+        else if (prevValue === null && index === 0) {
           prevValue = await getPreviousPeriodData(bucket, sensorId, day.date, 'daily');
-          difference = currentValue ? currentValue - prevValue : null;
-        } else {
-          const prevDayResult = results.find((r) => dayjs(r._time).isSame(days[index - 1].date, 'day'));
-          prevValue = prevDayResult?._value || null;
-          difference = currentValue ? currentValue - prevValue : null;
+        }
+
+        // Calculate difference if we have both values
+        if (currentValue !== null && prevValue !== null) {
+          difference = currentValue - prevValue;
         }
       }
 
@@ -504,16 +549,36 @@ async function handleWeeklyMonthData(bucket, sensorId, today, startDate, endDate
       const result = results.find((r) => dayjs(r._time).isSame(week.start, 'week'));
       const currentValue = week.isFuture ? null : result?._value || null;
 
-      let prevValue,
-        difference = null;
-      if (!week.isFuture) {
-        if (index === 0) {
-          prevValue = await getPreviousPeriodData(bucket, sensorId, week.start, 'weekly');
-          difference = currentValue ? currentValue - prevValue : null;
-        } else {
-          const prevWeekResult = results.find((r) => dayjs(r._time).isSame(weeks[index - 1].start, 'week'));
-          prevValue = prevWeekResult?._value || null;
-          difference = currentValue ? currentValue - prevValue : null;
+      let prevValue = null;
+      let difference = null;
+
+      if (!week.isFuture && currentValue !== null) {
+        // Find previous non-null value by looking backwards through weeks
+        let prevIndex = index - 1;
+
+        while (prevIndex >= 0 && prevValue === null) {
+          const prevWeek = weeks[prevIndex];
+          if (!prevWeek.isFuture) {
+            const prevWeekResult = results.find((r) => dayjs(r._time).isSame(prevWeek.start, 'week'));
+            prevValue = prevWeekResult?._value ?? null;
+          }
+          prevIndex--;
+        }
+
+        // Fallback logic when no previous value found
+        if (prevValue === null) {
+          if (index > 0) {
+            // For non-first weeks, use the first week's previous period data
+            prevValue = await getPreviousPeriodData(bucket, sensorId, weeks[0].start, 'weekly');
+          } else {
+            // For the first week, get its direct previous period
+            prevValue = await getPreviousPeriodData(bucket, sensorId, week.start, 'weekly');
+          }
+        }
+
+        // Calculate difference if we have both values
+        if (currentValue !== null && prevValue !== null) {
+          difference = currentValue - prevValue;
         }
       }
 
@@ -574,7 +639,9 @@ async function handleMonthlyYearData(bucket, sensorId, today, startDate, endDate
       |> range(start: ${startDate.toISOString()}, stop: ${endDate.toISOString()})
       |> filter(fn: (r) => r["_measurement"] == "device_frmpayload_data_value_${sensorId}")
       |> filter(fn: (r) => r["_field"] == "value")
-      |> aggregateWindow(every: 1mo, fn: last, offset: ${tz_offset}, createEmpty: false)
+      |> timeShift(duration: ${tz_offset})  // เลื่อนเวลาไปสิ้นเดือน
+      |> aggregateWindow(every: 1mo, fn: last, createEmpty: false)
+      |> timeShift(duration: -${tz_offset})  // เลื่อนเวลากลับ
   `;
 
   const results = await influxApi.collectRows(fluxQuery);
@@ -585,17 +652,36 @@ async function handleMonthlyYearData(bucket, sensorId, today, startDate, endDate
       const currentValue = month.isFuture ? null : result?._value || null;
       const hasPartialData = month.isCurrentMonth && !today.isSame(month.end, 'day');
 
-      let prevValue,
-        difference = null;
+      let prevValue = null;
+      let difference = null;
 
-      if (!month.isFuture) {
-        if (index === 0) {
-          prevValue = await getPreviousPeriodData(bucket, sensorId, month.start, 'monthly');
-          difference = currentValue ? currentValue - prevValue : null;
-        } else {
-          const prevMonthResult = results.find((r) => dayjs(r._time).isSame(months[index - 1].start, 'month'));
-          prevValue = prevMonthResult?._value || null;
-          difference = currentValue ? currentValue - prevValue : null;
+      if (!month.isFuture && currentValue !== null) {
+        // Find previous non-null value by looking backwards through months
+        let prevIndex = index - 1;
+
+        while (prevIndex >= 0 && prevValue === null) {
+          const prevMonth = months[prevIndex];
+          if (!prevMonth.isFuture) {
+            const prevMonthResult = results.find((r) => dayjs(r._time).isSame(prevMonth.start, 'month'));
+            prevValue = prevMonthResult?._value ?? null;
+          }
+          prevIndex--;
+        }
+
+        // Fallback logic when no previous value found
+        if (prevValue === null) {
+          if (index > 0) {
+            // For non-first months, use the first month's previous period data
+            prevValue = await getPreviousPeriodData(bucket, sensorId, months[0].start, 'monthly');
+          } else {
+            // For the first month, get its direct previous period
+            prevValue = await getPreviousPeriodData(bucket, sensorId, month.start, 'monthly');
+          }
+        }
+
+        // Calculate difference if we have both values
+        if (currentValue !== null && prevValue !== null) {
+          difference = currentValue - prevValue;
         }
       }
 
