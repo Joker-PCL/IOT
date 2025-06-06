@@ -14,16 +14,16 @@ type TableNoDataProps = TableRowProps & {
 export function TableNoData({ searchQuery, ...other }: TableNoDataProps) {
   return (
     <TableRow {...other}>
-      <TableCell align="center" colSpan={7}>
+      <TableCell align="center" colSpan={20}>
         <Box sx={{ py: 15, textAlign: 'center' }}>
           <Typography variant="h6" sx={{ mb: 1 }}>
-            Not found
+            ไม่พบข้อมูล
           </Typography>
 
           <Typography variant="body2">
-            No results found for &nbsp;
+            ไม่พบข้อมูลที่ตรงกับ &nbsp;
             <strong>&quot;{searchQuery}&quot;</strong>.
-            <br /> Try checking for typos or using complete words.
+            <br /> ตรวจสอบข้อมูลการค้นหาอีกครั้ง
           </Typography>
         </Box>
       </TableCell>

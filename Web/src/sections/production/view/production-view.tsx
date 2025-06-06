@@ -116,7 +116,7 @@ export function ProductionView() {
               <UserTableHead
                 order={table.order}
                 orderBy={table.orderBy}
-                rowCount={dataProduction.length}
+                rowCount={dataFiltered.length}
                 numSelected={table.selected.length}
                 onSort={table.onSort}
                 // onSelectAllRows={(checked) =>
@@ -175,7 +175,7 @@ export function ProductionView() {
           <Grid item xs={12} md="auto">
             <Stack direction="row" justifyContent="center" alignItems="center">
               <Pagination
-                count={Math.ceil(dataProduction.length / table.rowsPerPage)} // คำนวณจำนวนหน้าทั้งหมด
+                count={Math.ceil(dataFiltered.length / table.rowsPerPage)} // คำนวณจำนวนหน้าทั้งหมด
                 page={table.page + 1} // Material-UI ใช้ index เริ่มต้นที่ 1
                 onChange={(event, value) => table.onChangePage(event, value - 1)} // ปรับ index ให้ตรงกับ state
                 color="primary"
@@ -192,7 +192,7 @@ export function ProductionView() {
               <TablePagination
                 component="div"
                 page={table.page}
-                count={dataProduction.length}
+                count={dataFiltered.length}
                 rowsPerPage={table.rowsPerPage}
                 onPageChange={table.onChangePage}
                 rowsPerPageOptions={[5, 10, 25]}
