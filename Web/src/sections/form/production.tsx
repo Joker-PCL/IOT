@@ -23,7 +23,7 @@ import { SvgColor } from 'src/components/svg-color';
 
 import { useRouter } from 'src/routes/hooks';
 import { fDateTimeToLocal } from 'src/utils/format-time';
-import { ProductsApi, ProductTypesApi, MachinesApi, ProductionUpdateApi } from '../../api/api';
+import { ProductsApi, ProductTypesApi, MachineListsProps, MachinesApi, ProductionUpdateApi } from '../../api/production';
 
 import { ProductSearch } from './product-search';
 import type { ProductionsProps } from '../production/table-row';
@@ -44,15 +44,7 @@ export type ProductTypesProps = {
   description: string;
 };
 
-// รายชื่อเครื่องจักรในฐานข้อมูล
-export type MachineListsProps = {
-  serial_number: string;
-  machine_sn: string;
-  machine_name_en: string;
-  last_connect: string;
-  machine_img: string;
-  group_name: string;
-};
+
 
 export function FormProduction() {
   const router = useRouter();

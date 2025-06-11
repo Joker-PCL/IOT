@@ -67,7 +67,7 @@ export function DashboardLayout({ sx, children, header }: DashboardLayoutProps) 
                   onClick={() => setNavOpen(true)}
                   sx={{
                     ml: -1,
-                    ...(fullScreen === false && {[theme.breakpoints.up(layoutQuery)]: { display: 'none' }}),
+                    ...(fullScreen === false && { [theme.breakpoints.up(layoutQuery)]: { display: 'none' } }),
                   }}
                 />
                 <NavMobile data={navData} open={navOpen} onClose={() => setNavOpen(false)} workspaces={_workspaces} />
@@ -157,7 +157,6 @@ export function DashboardLayout({ sx, children, header }: DashboardLayoutProps) 
         }),
         ...sx,
       }}
-      
     >
       <Main>{children}</Main>
     </LayoutSection>

@@ -54,10 +54,14 @@ services:
       dockerfile: ./Dockerfile
     environment:
       NODE_ENV: production
+      DEV_MODE: "true"
+      MQTT_CONTAINER_NAME: server-api-1
     env_file:
       - .env # ✅ โหลดค่าจาก .env
     volumes:
       - ./configuration/nginx/html/assets/images/machine:/usr/src/app/images
+      - /var/run/docker.sock:/var/run/docker.sock
+    user: root
     restart: always
     networks:
       - iot-network

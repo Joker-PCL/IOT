@@ -53,7 +53,7 @@ router.post('/', async (req, res) => {
 
     const [getLastValue] = await influxApi.collectRows(fluxQuery);
     const lastData = getLastValue?._value ?? 0;
-    const lastDataDate = getLastValue?._time ? dayjs(getLastValue._time).tz(tz).format('DD/MM/YYYY HH:mm:ss') : 0;
+    const lastDataDate = getLastValue?._time ? dayjs(getLastValue._time).tz(tz).format('D MMMM YYYY HH:mm:ss') : 0;
 
     // ดึงข้อมูลตาม period และ range
     const today = dayjs().tz(tz);
@@ -317,6 +317,7 @@ async function handleDailyWeekData(bucket, sensorId, today, startDate, endDate) 
       return {
         day: day.name,
         date: day.date.format('DD/MM/YYYY'),
+        day_short: day.date.format('D MMM'), // "23 พ.ค."
         currentValue,
         prevValue,
         difference,
@@ -331,8 +332,8 @@ async function handleDailyWeekData(bucket, sensorId, today, startDate, endDate) 
     weekOfYear: today.week(),
     asOfDate: today.format('DD/MM/YYYY'),
     customRange: isCustomRange(startDate, endDate, today, 'week'),
-    startDate: startDate.format('DD/MM/YYYY'),
-    endDate: endDate.format('DD/MM/YYYY'),
+    startDate: startDate.format('D MMMM YYYY'),
+    endDate: endDate.format('D MMMM YYYY'),
   };
 
   return { data, meta };
@@ -398,6 +399,7 @@ async function handleDailyMonthData(bucket, sensorId, today, startDate, endDate)
 
       return {
         day: day.date.format('DD/MM/YY'),
+        day_short: day.date.format('D MMM'), // "23 พ.ค."
         dayOfMonth: day.dayOfMonth,
         currentValue,
         prevValue,
@@ -414,8 +416,8 @@ async function handleDailyMonthData(bucket, sensorId, today, startDate, endDate)
     month: today.format('MMMM'),
     asOfDate: today.format('DD/MM/YYYY'),
     customRange: isCustomRange(startDate, endDate, today, 'month'),
-    startDate: startDate.format('DD/MM/YYYY'),
-    endDate: endDate.format('DD/MM/YYYY'),
+    startDate: startDate.format('D MMMM YYYY'),
+    endDate: endDate.format('D MMMM YYYY'),
   };
 
   return { data, meta };
@@ -482,6 +484,7 @@ async function handleDailyYearData(bucket, sensorId, today, startDate, endDate) 
 
       return {
         day: day.date.format('DD/MM/YY'),
+        day_short: date.format('D MMM'), // "23 พ.ค."
         dayOfYear: day.date.dayOfYear(),
         currentValue,
         prevValue,
@@ -498,8 +501,8 @@ async function handleDailyYearData(bucket, sensorId, today, startDate, endDate) 
     year: today.year(),
     asOfDate: today.format('DD/MM/YYYY'),
     customRange: isCustomRange(startDate, endDate, today, 'year'),
-    startDate: startDate.format('DD/MM/YYYY'),
-    endDate: endDate.format('DD/MM/YYYY'),
+    startDate: startDate.format('D MMMM YYYY'),
+    endDate: endDate.format('D MMMM YYYY'),
   };
 
   return { data, meta };
@@ -603,8 +606,8 @@ async function handleWeeklyMonthData(bucket, sensorId, today, startDate, endDate
     year: today.year(),
     asOfDate: today.format('DD/MM/YYYY'),
     customRange: isCustomRange(startDate, endDate, today, 'month'),
-    startDate: startDate.format('DD/MM/YYYY'),
-    endDate: endDate.format('DD/MM/YYYY'),
+    startDate: startDate.format('D MMMM YYYY'),
+    endDate: endDate.format('D MMMM YYYY'),
   };
 
   return { data, meta };
@@ -705,8 +708,8 @@ async function handleMonthlyYearData(bucket, sensorId, today, startDate, endDate
     currentMonth: today.format('MMMM'),
     asOfDate: today.format('DD/MM/YYYY'),
     customRange: isCustomRange(startDate, endDate, today, 'year'),
-    startDate: startDate.format('DD/MM/YYYY'),
-    endDate: endDate.format('DD/MM/YYYY'),
+    startDate: startDate.format('D MMMM YYYY'),
+    endDate: endDate.format('D MMMM YYYY'),
   };
 
   return { data, meta };
@@ -723,8 +726,8 @@ function isCustomRange(startDate, endDate, today, range) {
 
   return !startDate.isSame(defaultStart) || !endDate.isSame(defaultEnd)
     ? {
-        start: startDate.format('DD/MM/YYYY HH:mm'),
-        end: endDate.format('DD/MM/YYYY HH:mm'),
+        start: startDate.format('D MMMM YYYY HH:mm'),
+        end: endDate.format('D MMMM YYYY HH:mm'),
       }
     : undefined;
 }

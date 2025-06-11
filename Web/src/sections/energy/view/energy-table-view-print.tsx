@@ -10,13 +10,12 @@ import Button from '@mui/material/Button';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import { saveAs } from 'file-saver';
-import * as XLSX from 'xlsx';
 import { jsPDF as JSPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
 import { Scrollbar } from 'src/components/scrollbar';
 import { Loading } from '../../../components/loading/loading';
-import { EnergyDataProps } from '../../../api/api';
+import { EnergyDataProps } from '../../../api/energy';
 import { convertEnergyUnit } from '../utils';
 
 export function EnergyUsageView({ post }: { post: EnergyDataProps[] }) {
@@ -114,27 +113,6 @@ export function EnergyUsageView({ post }: { post: EnergyDataProps[] }) {
     handleMenuClose();
   };
 
-  const exportToExcel = () => {
-    const headers = ['วันที่'];
-    post.forEach((meter) => {
-      headers.push(`${meter.meter_position} (เลขมิเตอร์)`, `${meter.meter_position} (จำนวนหน่วย)`);
-    });
-
-    const data = tableRows.map((row) => {
-      const rowData = [row.day];
-      post.forEach((_, idx) => {
-        rowData.push(row[`currentValue_${idx}`] || '-', row[`difference_${idx}`] || '-');
-      });
-      return rowData;
-    });
-
-    const ws = XLSX.utils.aoa_to_sheet([headers, ...data]);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Energy Usage');
-    XLSX.writeFile(wb, 'energy_usage_report.xlsx');
-    handleMenuClose();
-  };
-
   const exportToCSV = () => {
     const headers = ['วันที่'];
     post.forEach((meter) => {
@@ -197,7 +175,6 @@ export function EnergyUsageView({ post }: { post: EnergyDataProps[] }) {
         </Button>
         <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleMenuClose}>
           <MenuItem onClick={exportToPDF}>Export as PDF</MenuItem>
-          <MenuItem onClick={exportToExcel}>Export as Excel</MenuItem>
           <MenuItem onClick={exportToCSV}>Export as CSV</MenuItem>
           <MenuItem
             onClick={() => {

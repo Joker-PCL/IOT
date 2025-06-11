@@ -1,6 +1,6 @@
 import ToggleButton from '@mui/material/ToggleButton';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
-import { MeterDateRangeType } from '../../api/api';
+import { MeterDateRangeType } from '../../api/energy';
 
 export type TogglePeriodTimeProps = {
   dateRange: MeterDateRangeType;

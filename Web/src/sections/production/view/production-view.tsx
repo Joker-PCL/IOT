@@ -28,7 +28,7 @@ import { TableEmptyRows } from '../table-empty-rows';
 import { emptyRows, applyFilter, getComparator } from '../utils';
 
 import type { ProductionsProps } from '../table-row';
-import { ProductionApi } from '../../../api/api';
+import { ProductionApi } from '../../../api/production';
 import { Loading } from '../../../components/loading/loading';
 
 // ----------------------------------------------------------------------

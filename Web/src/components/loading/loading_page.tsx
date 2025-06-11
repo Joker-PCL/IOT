@@ -1,7 +1,7 @@
 import React from 'react';
 
 interface LoadingProps {
-  isShowing?: boolean; // Optional boolean prop
+  isShowing?: boolean;
 }
 
 export function Loading({ isShowing = false }: LoadingProps) {
@@ -15,6 +15,6 @@ export function Loading({ isShowing = false }: LoadingProps) {
           <div className="slider" style={{ '--i': 3 } as React.CSSProperties} />
           <div className="slider" style={{ '--i': 4 } as React.CSSProperties} />
         </section>
-      </div>
+    </div>
   );
 }

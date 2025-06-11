@@ -14,7 +14,7 @@ import { useNavigate } from 'react-router-dom';
 import Avatar from '@mui/material/Avatar';
 import { SvgColor } from 'src/components/svg-color';
 
-import { LoginApi, LogoutApi } from '../../api/api';
+import { LoginApi, LogoutApi } from '../../api/production';
 
 // ----------------------------------------------------------------------
 export type FormProps = {

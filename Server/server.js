@@ -1,4 +1,7 @@
 require('dotenv').config();
+const os = require('os');
+const Docker = require('dockerode');
+const docker = new Docker(); // จะใช้ default socket /var/run/docker.sock
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const cookieParser = require('cookie-parser');
@@ -21,15 +24,43 @@ const { authenticateWebToken } = require('./api/auth-web');
 const app = express();
 
 const server = http.createServer(app); // 👈 สร้าง HTTP server
-const setupMQTTAndSocket = require('./api/energy-influxDB/mqttSocket');
+const setupMQTTAndSocket = require('./api/energy-influxDB/mqtt-socket');
 
-if (process.env.NODE_ENV === 'production') {
+if (process.env.NODE_ENV === 'production' && process.env.DEV_MODE !== 'true') {
   console.log = function () {}; // ปิดการทำงานของ console.log
+}
+
+async function getSelfContainerName() {
+  try {
+    const hostname = os.hostname(); // Docker container ID (short)
+    const containers = await docker.listContainers();
+
+    const match = containers.find((c) => c.Id.startsWith(hostname));
+    const containerNames = match?.Names?.[0]?.replace(/^\//, '') || null;
+
+    console.log('Container Names:', containerNames);
+    return containerNames;
+  } catch (err) {
+    console.error('Error fetching self container name:', err.message);
+    return null;
+  }
 }
 
 // ห่อไว้ในฟังก์ชัน async
 async function startServer() {
-  const { updateSubscriptions } = await setupMQTTAndSocket(server, MQTT_LINK); // ✅ ถูกต้องเมื่ออยู่ใน async function
+  let updateSubscriptionsHandle = null;
+
+  if (process.env.NODE_ENV === 'production') {
+    const containerNames = (await getSelfContainerName()) || [];
+
+    if (containerNames.includes(process.env.MQTT_CONTAINER_NAME)) {
+      const { updateSubscriptions } = await setupMQTTAndSocket(server, MQTT_LINK); // ✅ ถูกต้องเมื่ออยู่ใน async function
+      updateSubscriptionsHandle = updateSubscriptions;
+    }
+  } else {
+    const { updateSubscriptions } = await setupMQTTAndSocket(server, MQTT_LINK); // ✅ ถูกต้องเมื่ออยู่ใน async function
+    updateSubscriptionsHandle = updateSubscriptions;
+  }
 
   // ใช้ body-parser สำหรับ JSON
   app.use(bodyParser.json());
@@ -63,13 +94,13 @@ async function startServer() {
   app.use('/api/poli', authenticateWebToken, poli);
   app.use('/api/devices', authenticateDevicesToken, device);
 
-  const energy =  require('./api/energy-influxDB/energy');
+  const energy = require('./api/energy-influxDB/energy');
   app.use('/api/energy', authenticateWebToken, energy);
 
   // Login endpoint
   app.post('/api/login', async (req, res) => {
     const { username, password } = req.body;
-    console.log(username, password)
+    console.log(username, password);
     if (!username || !password) {
       return res.status(400).json({ message: 'Username and password are required' });
     }
@@ -124,12 +155,14 @@ async function startServer() {
   // ตัวอย่างการใช้ updateSubscriptions
   app.post('/api/update-subscriptions', async (req, res) => {
     console.log('Updating subscriptions...');
-    try {
-      await updateSubscriptions(); // เรียกใช้ฟังก์ชัน updateSubscriptions
-      res.status(200).json({ message: 'Subscriptions updated successfully' });
-    } catch (err) {
-      console.error('❌ Failed to update subscriptions:', err);
-      res.status(500).json({ message: 'Failed to update subscriptions' });
+    if (updateSubscriptionsHandle) {
+      try {
+        await updateSubscriptionsHandle(); // เรียกใช้ฟังก์ชัน updateSubscriptions
+        res.status(200).json({ message: 'Subscriptions updated successfully' });
+      } catch (err) {
+        console.error('❌ Failed to update subscriptions:', err);
+        res.status(500).json({ message: 'Failed to update subscriptions' });
+      }
     }
   });
 

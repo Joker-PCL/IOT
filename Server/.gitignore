@@ -12,6 +12,7 @@ yarn.lock
 
 node_modules
 dist
+images
 dist-ssr
 *.local
 .env

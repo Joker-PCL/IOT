@@ -15,7 +15,7 @@ import { SvgColor } from 'src/components/svg-color';
 
 import { useRouter } from 'src/routes/hooks';
 import QrScaner from './qr-scaner';
-import { MachineGroupsApi, MachineSettingsApi } from '../../api/api';
+import { MachineGroupsApi, MachineSettingsApi } from '../../api/production';
 
 // ----------------------------------------------------------------------
 export type MachineGroup = {

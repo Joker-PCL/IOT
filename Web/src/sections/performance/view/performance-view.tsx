@@ -13,7 +13,7 @@ import { Loading } from '../../../components/loading/loading';
 import { AnalyticsVisits } from '../analytics-visits';
 import { AnalyticsCurrentVisits } from '../analytics-pie-visits';
 import { API_URL } from '../../../api/config/link_api';
-import { PerformanceApi } from '../../../api/api';
+import { PerformanceApi } from '../../../api/production';
 
 import type { DashboardProps } from '../../dashboard/post-item';
 
@@ -109,9 +109,9 @@ export function MachineView() {
         setLiveData({
           machine_sn: '',
           status: 'LOADING',
-          cycle_time: Number(getData.avg_cycle_time) || 0,
+          cycle_time: Number(getData.avg_cycle_time / post.pieces_per_cut) || 0,
           cpm: Number(getData.avg_cpm) || 0,
-          good_path_count: Number(getData.total_good_path_count) || 0,
+          good_path_count: Number(getData.total_good_path_count * post.pieces_per_cut) || 0,
           reject_count: Number(getData.total_reject_count) || 0,
           start_time: Number(getData.total_start_time) || 0,
           stop_time: Number(getData.total_stop_time) || 0,
@@ -133,7 +133,7 @@ export function MachineView() {
     };
 
     fetchData();
-  }, [post.machine_sn, post.start_product, post.finish_product, navigate]);
+  }, [post.machine_sn, post.start_product, post.finish_product, post.pieces_per_cut, navigate]);
 
   // MQTT
   useEffect(() => {
@@ -150,15 +150,17 @@ export function MachineView() {
     // รับข้อมูล machine_name_en-data
     socket.on('machine-data', (msg: MachineDataProps) => {
       // console.log('Received machine_name_en data:', msg);
+      const msgGoodPathCount = msg.good_path_count * post.pieces_per_cut;
+      const msgRejectPathCount = msg.reject_count * post.pieces_per_cut;
       setLiveData((prev) => ({
         machine_sn: msg.machine_sn ?? prev?.machine_sn ?? '',
         status: msg.status ?? prev?.status ?? 'LOADING',
-        cycle_time: msg.cycle_time > 0 ? msg.cycle_time : (prev?.cycle_time ?? 0),
-        cpm: msg.cpm > 0 ? msg.cpm : (prev?.cpm ?? 0),
-        good_path_count: (prev?.good_path_count ?? 0) + msg.good_path_count,
-        reject_count: (prev?.reject_count ?? 0) + msg.reject_count,
-        start_time: (prev?.start_time ?? 0) + msg.start_time,
-        stop_time: (prev?.stop_time ?? 0) + msg.stop_time,
+        cycle_time: (msg.cycle_time > 0 ? msg.cycle_time : prev?.cycle_time || 0) / post.pieces_per_cut,
+        cpm: msg.cpm || prev?.cpm || 0,
+        good_path_count: (prev?.good_path_count || 0) + msgGoodPathCount,
+        reject_count: (prev?.reject_count || 0) + msgRejectPathCount,
+        start_time: (prev?.start_time || 0) + msg.start_time,
+        stop_time: (prev?.stop_time || 0) + msg.stop_time,
         timestamp: msg.timestamp,
       }));
 
@@ -169,11 +171,11 @@ export function MachineView() {
           series: [
             {
               name: 'ชิ้นงานดี',
-              data: prev?.series[0]?.data ? [...prev.series[0].data.slice(-49), msg.good_path_count] : [msg.good_path_count],
+              data: prev?.series[0]?.data ? [...prev.series[0].data.slice(-49), msgGoodPathCount] : [msgGoodPathCount],
             },
             {
               name: 'ชิ้นงานเสีย',
-              data: prev?.series[1]?.data ? [...prev.series[1].data.slice(-49), msg.reject_count] : [msg.reject_count],
+              data: prev?.series[1]?.data ? [...prev.series[1].data.slice(-49), msgRejectPathCount] : [msgRejectPathCount],
             },
           ],
         };
@@ -198,7 +200,7 @@ export function MachineView() {
       socket.emit('unsubscribe', machine_sn); // ยกเลิกการ subscribe
       socket.off('machine_name_en-data'); // ลบ event listener
     };
-  }, [post.machine_sn, post.finish_product]);
+  }, [post.machine_sn, post.finish_product, post.pieces_per_cut]);
 
   // หากเวลาห่างกันเกิน 5 วินาที ให้ตั้งสถานะเป็น OFFLINE
   useEffect(() => {
@@ -224,8 +226,7 @@ export function MachineView() {
     const downtime = Number(planned_time - uptime);
     const good_path_count = Number(liveData?.good_path_count) * Number(post.pieces_per_cut);
     const total_count = good_path_count + Number(liveData?.reject_count);
-    const cycle_time = Number(liveData?.cycle_time) * Number(post.pieces_per_cut);
-    // console.log(planned_time)
+    const cycle_time = Number(liveData?.cycle_time);
 
     // คำนวณ Availability
     const _availability = downtime / planned_time;
@@ -325,7 +326,7 @@ export function MachineView() {
                 การผลิต ({post.batch_size ?? 'x,xxx'} * {post.pieces_per_box ?? 'x'})
               </Typography>
               <Typography variant="h4" color="primary">
-                {((liveData?.good_path_count || 0) * (post.pieces_per_cut || 0)).toLocaleString() || 'X,XXX'}/
+                {(liveData?.good_path_count || 0).toLocaleString() || 'X,XXX'}/
                 {((post.batch_size || 0) * (post.pieces_per_box || 0)).toLocaleString() ?? 'X,XXX'} {post.product_type}
               </Typography>
             </CardContent>
@@ -416,7 +417,7 @@ export function MachineView() {
             title="📈 ข้อมูลการผลิต"
             subheader={
               productionTrendData?.series
-                ? `${productionTrendData?.series[0].name} ${liveData?.good_path_count ?? '--'} ${productionTrendData?.series[1].name} ${liveData?.reject_count ?? '--'}`
+                ? `${productionTrendData?.series[0].name} ${liveData?.good_path_count.toLocaleString() ?? '--'} ${productionTrendData?.series[1].name} ${liveData?.reject_count.toLocaleString() ?? '--'}`
                 : 'ไม่มีข้อมูลการผลิตในช่วงนี้'
             }
             unit="ชิ้น"

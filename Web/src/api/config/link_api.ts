@@ -30,4 +30,7 @@ export const API_URL = {
   GET_METERS: `${API_PATH}${ENERGY_LINK}/meters-lists`,
   GET_METER_DATA: `${API_PATH}${ENERGY_LINK}/meter-data`,
 
+  // รายงานเครื่องจักร
+  GET_MACHINE_REPORT: `${API_PATH}${WEB_LINK}/machine-report`,
+
 };

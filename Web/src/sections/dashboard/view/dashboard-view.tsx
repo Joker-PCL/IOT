@@ -22,7 +22,7 @@ import { applyFilter } from '../utils';
 import { Loading } from '../../../components/loading/loading';
 import { MachineDataProps } from '../../performance/view/performance-view';
 
-import { DashboardApi } from '../../../api/api';
+import { DashboardApi } from '../../../api/production';
 import { API_URL } from '../../../api/config/link_api';
 
 // ----------------------------------------------------------------------
@@ -149,9 +149,9 @@ export function DashboardView() {
 
   return (
     <>
-      <Loading isShowing={isLoading} />
       <DashboardContent>
-        <Box display="flex" alignItems="center" mb={5}>
+      <Loading isShowing={isLoading} />
+        <Box display="flex" alignItems="center" mb={5} sx={{ p: 3, pt: 1 }}>
           <Typography variant="h4" flexGrow={1}>
             Dashboard
           </Typography>

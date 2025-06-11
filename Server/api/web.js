@@ -10,6 +10,9 @@ const heicConvert = require('heic-convert'); // ต้องติดตั้�
 const pool = require('../configuration/mysql_db');
 const { groupedByDate } = require('./utils');
 
+const machine_report = require('./machine-report');
+router.use('/machine-report', machine_report);
+
 // Endpoint สำหรับสร้างข้อมูล กรัม
 router.get('/dashboard', async (req, res) => {
   try {
@@ -449,8 +452,8 @@ router.post('/machine/settings', async (req, res) => {
   let imageUrl = null;
 
   try {
-    if (req.files?.upload_machine_img) {
-      const file = req.files.upload_machine_img;
+    if (req.files?.upload_machine_image) {
+      const file = req.files.upload_machine_image;
       const ext = path.extname(file.name).toLowerCase();
       console.log('File extension:', ext);
       console.log('File MIME type:', file.mimetype);
@@ -490,13 +493,13 @@ router.post('/machine/settings', async (req, res) => {
       // เพิ่มรายการเครื่องจักร
       if (machine_id) {
         await conn.execute('UPDATE machine SET alarm_box_sn_1 = NULL WHERE alarm_box_sn_1 = ?  OR alarm_box_sn_1 = ?', [
-          alarm_box_sn_1 || "",
-          alarm_box_sn_2 || "",
+          alarm_box_sn_1 || '',
+          alarm_box_sn_2 || '',
         ]);
 
         await conn.execute('UPDATE machine SET alarm_box_sn_2 = NULL WHERE alarm_box_sn_2 = ?  OR alarm_box_sn_2 = ?', [
-          alarm_box_sn_1 || "",
-          alarm_box_sn_2 || "",
+          alarm_box_sn_1 || '',
+          alarm_box_sn_2 || '',
         ]);
 
         const query = `

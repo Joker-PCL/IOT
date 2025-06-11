@@ -22,7 +22,7 @@ import { ModeGramView } from '../table/view/gram-view';
 import { ModePcsView } from '../table/view/pcs-view';
 import { Loading } from '../../../components/loading/loading';
 
-import { DetailApi } from '../../../api/api';
+import { DetailApi } from '../../../api/production';
 import type { ModeGramProps } from '../table/gram-table-row';
 import type { ModePcsProps } from '../table/pcs-table-row';
 import type { DashboardProps } from '../../dashboard/post-item';

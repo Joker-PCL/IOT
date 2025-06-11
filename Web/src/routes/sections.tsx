@@ -18,6 +18,7 @@ export const Page404 = lazy(() => import('src/pages/page-not-found'));
 
 export const PerformancePage = lazy(() => import('src/pages/performance'));
 export const EnergyPage = lazy(() => import('src/pages/energy'));
+export const MachineReportPage = lazy(() => import('src/pages/machine-report'));
 export const ProductionFormPage = lazy(() => import('src/pages/form/production'));
 export const SettingMachineFormPage = lazy(() => import('src/pages/form/machine-setting'));
 
@@ -53,6 +54,7 @@ export function Router() {
         { path: 'balance', element: <HomePage /> },
         { path: 'performance', element: <PerformancePage /> },
         { path: 'energy', element: <EnergyPage /> },
+        { path: 'machine-report', element: <MachineReportPage /> },
         { path: 'details', element: <DetailsPage /> },
         { path: 'production/form', element: <ProductionFormPage /> },
         { path: 'machine-setting/form', element: <SettingMachineFormPage /> },

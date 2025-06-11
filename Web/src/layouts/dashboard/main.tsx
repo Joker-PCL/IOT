@@ -38,7 +38,7 @@ export function DashboardContent({
   sx,
   children,
   disablePadding,
-  maxWidth = 'xl',
+  maxWidth = false,
   ...other
 }: DashboardContentProps) {
   const theme = useTheme();

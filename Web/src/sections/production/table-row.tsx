@@ -22,7 +22,7 @@ import { fDateTime } from 'src/utils/format-time';
 import { ReactSVG } from 'react-svg';
 import { SvgColor } from 'src/components/svg-color';
 
-import { ProductionDeleteApi } from '../../api/api';
+import { ProductionDeleteApi } from '../../api/production';
 // ----------------------------------------------------------------------
 
 export type ProductionsProps = {

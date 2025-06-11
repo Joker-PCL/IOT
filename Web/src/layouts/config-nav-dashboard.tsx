@@ -12,30 +12,20 @@ export const navData = [
     path: '/',
     icon: icon('ic-home'),
   },
-  // {
-  //   title: 'Dashboard',
-  //   path: '/dashboard',
-  //   icon: icon('ic-analytics'),
-  // },
   {
     title: 'รายการผลิต',
     path: '/production',
     icon: icon('ic-cart'),
   },
-  // {
-  //   title: 'ข้อมูลการชั่งน้ำหนัก',
-  //   path: '/balance',
-  //   icon: icon('ic-scale'),
-  // },
-  // {
-  //   title: 'ประสิทธิภาพการผลิต',
-  //   path: '/performance',
-  //   icon: icon('ic-performance'),
-  // },
   {
     title: 'การใช้พลังงาน',
     path: '/energy',
     icon: icon('ic-energy'),
+  },
+    {
+    title: 'รายงานเครื่องจักร',
+    path: '/machine-report',
+    icon: icon('ic-machine-report'),
   },
   {
     title: 'ออกจากระบบ',
